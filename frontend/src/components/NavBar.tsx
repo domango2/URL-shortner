@@ -14,12 +14,12 @@ const NavBar: React.FC = () => {
       : "text-gray-700 hover:text-blue-600 px-3 py-1";
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md py-1">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between">
           <div className="flex space-x-4">
             <span className="flex items-center text-2xl font-bold text-blue-600">
-              URL-Shortner
+              <NavLink to="/dashboard">URL-Shortner</NavLink>
             </span>
           </div>
 
@@ -32,7 +32,7 @@ const NavBar: React.FC = () => {
             </NavLink>
             <button
               onClick={handleLogout}
-              className="ml-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+              className="ml-4 bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-600"
             >
               Выйти
             </button>

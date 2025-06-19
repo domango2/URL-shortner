@@ -1,8 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import NavBar from "../components/NavBar";
+import { useAuth } from "../hooks/useAuth";
 
 const ShortenPage: React.FC = () => {
+  const { authHeaders, handleAuthError } = useAuth();
   const [form, setForm] = useState({ originalUrl: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,20 +24,13 @@ const ShortenPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Токен отсутствует. Пожалуйста, войдите заново.");
-        setLoading(false);
-        return;
-      }
-
       const response = await axios.post(
         "http://localhost:5000/links",
         { originalUrl: form.originalUrl },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...authHeaders(),
           },
         }
       );
@@ -47,12 +42,14 @@ const ShortenPage: React.FC = () => {
       });
       setForm({ originalUrl: "" });
     } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Что-то пошло не так при сокращении ссылки.");
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        handleAuthError();
+        return;
       }
+      setError(
+        err.response?.data?.message ||
+          "Что-то пошло не так при сокращении ссылки."
+      );
     } finally {
       setLoading(false);
     }
@@ -78,7 +75,7 @@ const ShortenPage: React.FC = () => {
                 htmlFor="originalUrl"
                 className="block mb-1 text-gray-600 text-sm sm:text-base"
               >
-                Введите длинную ссылку
+                Введите ссылку
               </label>
               <input
                 type="url"

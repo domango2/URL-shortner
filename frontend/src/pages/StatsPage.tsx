@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import NavBar from "../components/NavBar";
+import { useAuth } from "../hooks/useAuth";
 
 interface ClickStat {
   timestamp: string;
@@ -32,6 +33,7 @@ interface ChartData {
 }
 
 const StatsPage: React.FC = () => {
+  const { authHeaders, handleAuthError } = useAuth();
   const { shortCode } = useParams<{ shortCode: string }>();
   const [stats, setStats] = useState<ClickStat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,20 +48,11 @@ const StatsPage: React.FC = () => {
         return;
       }
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Токен отсутствует. Пожалуйста, войдите заново.");
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await axios.get<StatsResponse>(
           `http://localhost:5000/stats/${shortCode}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: authHeaders(),
           }
         );
         const data = response.data.stats;
@@ -76,18 +69,20 @@ const StatsPage: React.FC = () => {
         setChartData(chartArr);
       } catch (err: any) {
         console.error(err);
-        if (err.response?.data?.message) {
-          setError(err.response.data.message);
-        } else {
-          setError("Ошибка при получении статистики");
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          handleAuthError();
+          return;
         }
+        setError(
+          err.response?.data?.message || "Ошибка при получении статистики"
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchStats();
-  }, [shortCode]);
+  }, [shortCode, authHeaders, handleAuthError]);
 
   if (loading) {
     return (

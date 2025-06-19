@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import axios from "axios";
+import { useAuth } from "../hooks/useAuth";
 
 interface UserLink {
   id: number;
@@ -12,6 +13,7 @@ interface UserLink {
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { authHeaders, handleAuthError } = useAuth();
 
   const [links, setLinks] = useState<UserLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,38 +21,46 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     const fetchLinks = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Токен не найден. Пожалуйста, войдите снова.");
-        setLoading(false);
-        return;
-      }
       try {
         const response = await axios.get<{ links: UserLink[] }>(
           "http://localhost:5000/links",
-          {
-            headers: { Authorization: `Bearer ${token} ` },
-          }
+          { headers: authHeaders() }
         );
         setLinks(response.data.links);
       } catch (err: any) {
         console.error(err);
-        if (err.response?.data?.message) {
-          setError(err.response.data.message);
-        } else {
-          setError("Ошибка при загрузке списка ссылок.");
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          handleAuthError();
+          return;
         }
+        setError(
+          err.response?.data?.message || "Ошибка при загрузке списка ссылок."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchLinks();
-  }, []);
+  }, [authHeaders, handleAuthError]);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 10;
+
+  const deleteButtonHandler = async (id: number) => {
+    if (!confirm("Удалить эту ссылку?")) return;
+
+    try {
+      await axios.delete(`http://localhost:5000/links/${id}`, {
+        headers: authHeaders(),
+      });
+      setLinks((prev) => prev.filter((link) => link.id !== id));
+    } catch (e) {
+      console.error(e);
+      alert("Ошибка при удалении");
+    }
+  };
 
   const filtered = links.filter(
     (l) =>
@@ -154,83 +164,25 @@ const DashboardPage: React.FC = () => {
                     <td className="px-3 sm:px-4 py-2 border text-gray-700">
                       {new Date(link.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-3 sm:px-4 py-2 border align-top text-gray-700 space-y-1 sm:space-y-0 sm:flex sm:space-x-2">
-                      <button
-                        onClick={() => navigate(`/stats/${link.shortCode}`)}
-                        className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm"
+                    <td className="border">
+                      <div
+                        className="px-3 sm:px-4  
+                       align-top text-gray-700 space-y-1 sm:space-y-0 sm:flex sm:space-x-2"
                       >
-                        Статистика
-                      </button>
-                      <button
-                        onClick={async () => {
-                          const newUrl = prompt(
-                            "Введите новый оригинальный URL",
-                            link.originalUrl
-                          );
-                          if (
-                            !newUrl ||
-                            newUrl.trim() === "" ||
-                            newUrl.trim() === link.originalUrl
-                          ) {
-                            return;
-                          }
-                          const token = localStorage.getItem("token");
-                          try {
-                            const response = await axios.patch(
-                              `http://localhost:5000/links/${link.id}`,
-                              { originalUrl: newUrl.trim() },
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                },
-                              }
-                            );
-                            const updated = response.data.link as UserLink;
-                            setLinks((prev) =>
-                              prev.map((l) =>
-                                l.id === updated.id
-                                  ? {
-                                      ...l,
-                                      originalUrl: updated.originalUrl,
-                                      shortCode: updated.shortCode,
-                                    }
-                                  : l
-                              )
-                            );
-                          } catch (err) {
-                            console.error(err);
-                            alert("Ошибка при обновлении ссылки");
-                          }
-                        }}
-                        className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-xs sm:text-sm"
-                      >
-                        Редактировать
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (!confirm("Удалить эту ссылку?")) return;
-                          const token = localStorage.getItem("token");
-                          try {
-                            await axios.delete(
-                              `http://localhost:5000/links/${link.id}`,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                },
-                              }
-                            );
-                            setLinks((prev) =>
-                              prev.filter((l) => l.id !== link.id)
-                            );
-                          } catch (e) {
-                            console.error(e);
-                            alert("Ошибка при удалении");
-                          }
-                        }}
-                        className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs sm:text-sm"
-                      >
-                        Удалить
-                      </button>
+                        <button
+                          onClick={() => navigate(`/stats/${link.shortCode}`)}
+                          className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm"
+                        >
+                          Статистика
+                        </button>
+
+                        <button
+                          onClick={() => deleteButtonHandler(link.id)}
+                          className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-xs sm:text-sm"
+                        >
+                          Удалить
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

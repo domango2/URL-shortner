@@ -7,10 +7,20 @@ import PrivateRoute from "./components/PrivateRoute";
 import StatsPage from "./pages/StatsPage";
 
 function App() {
+  const token = localStorage.getItem("token");
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/login"
+        element={token ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+      />
+      <Route
+        path="/register"
+        element={
+          token ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+        }
+      />
 
       <Route
         path="/dashboard"

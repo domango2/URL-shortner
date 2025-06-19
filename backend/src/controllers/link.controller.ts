@@ -5,28 +5,34 @@ import { Link } from "../models/link.model";
 import { ClickStat } from "../models/clickstat.model";
 import { generateUniqueShortCode } from "../utils/generateShortCode";
 
-export async function createShortLink(req: Request, res: Response) {
+export async function createShortLink(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
     const userId = (req as any).userId as number;
     const { originalUrl } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ message: "Неавторизован" });
+      res.status(401).json({ message: "Неавторизован" });
+      return;
     }
 
     if (!originalUrl) {
-      return res.status(400).json({ message: "Поле originalUrl обязательно" });
+      res.status(400).json({ message: "Поле originalUrl обязательно" });
+      return;
     }
 
     const existing = await Link.findOne({ where: { userId, originalUrl } });
     if (existing) {
-      return res.status(200).json({
+      res.status(200).json({
         message: "Ссылка уже сокращалась",
         data: {
           originalUrl: existing.originalUrl,
           shortCode: existing.shortCode,
         },
       });
+      return;
     }
 
     const checkFn = async (code: string) => {
@@ -38,24 +44,27 @@ export async function createShortLink(req: Request, res: Response) {
 
     const newLink = await Link.create({ userId, originalUrl, shortCode });
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Ссылка успешно сокращена",
       data: {
         originalUrl: newLink.originalUrl,
         shortCode: newLink.shortCode,
       },
     });
+    return;
   } catch (error) {
     console.error("Ошибка в createShortLink:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }
 
-export async function getUserLinks(req: Request, res: Response) {
+export async function getUserLinks(req: Request, res: Response): Promise<void> {
   try {
     const userId = (req as any).userId as number;
     if (!userId) {
-      return res.status(401).json({ message: "Неавторизован" });
+      res.status(401).json({ message: "Неавторизован" });
+      return;
     }
 
     const links = await Link.findAll({
@@ -64,36 +73,43 @@ export async function getUserLinks(req: Request, res: Response) {
       attributes: ["id", "originalUrl", "shortCode", "createdAt"],
     });
 
-    return res.json({ links });
+    res.json({ links });
+    return;
   } catch (error) {
     console.error("Ошибка в getUserLinks:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }
 
-export async function deleteLink(req: Request, res: Response) {
+export async function deleteLink(req: Request, res: Response): Promise<void> {
   const userId = (req as any).userId as number;
   const { id } = req.params;
   const link = await Link.findByPk(id);
-  if (!link || link.userId !== userId)
-    return res.status(404).json({ message: "Не найдено или нет доступа" });
+  if (!link || link.userId !== userId) {
+    res.status(404).json({ message: "Не найдено или нет доступа" });
+    return;
+  }
   await link.destroy();
-  return res.json({ message: "Ссылка удалена" });
+  res.json({ message: "Ссылка удалена" });
+  return;
 }
 
-export async function updateLink(req: Request, res: Response) {
+export async function updateLink(req: Request, res: Response): Promise<void> {
   try {
     const userId = (req as any).userId as number;
     const { id } = req.params;
     const { originalUrl } = req.body;
 
     if (!originalUrl) {
-      return res.status(400).json({ message: "Поле originalUrl обязательно" });
+      res.status(400).json({ message: "Поле originalUrl обязательно" });
+      return;
     }
 
     const link = await Link.findByPk(id);
     if (!link || link.userId !== userId) {
-      return res.status(404).json({ message: "Не найдено или нет доступа" });
+      res.status(404).json({ message: "Не найдено или нет доступа" });
+      return;
     }
 
     const checkFn = async (code: string) => {
@@ -107,7 +123,7 @@ export async function updateLink(req: Request, res: Response) {
     link.shortCode = newShortCode;
     await link.save();
 
-    return res.json({
+    res.json({
       message: "Ссылка обновлена",
       link: {
         id: link.id,
@@ -116,23 +132,30 @@ export async function updateLink(req: Request, res: Response) {
         createdAt: link.createdAt,
       },
     });
+    return;
   } catch (error) {
     console.error("Ошибка в updateLink:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }
 
-export async function redirectToOriginal(req: Request, res: Response) {
+export async function redirectToOriginal(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
     const { shortCode } = req.params;
 
     if (!shortCode) {
-      return res.status(400).json({ message: "Код ссылки нe указан" });
+      res.status(400).json({ message: "Код ссылки нe указан" });
+      return;
     }
 
     const link = await Link.findOne({ where: { shortCode } });
     if (!link) {
-      return res.status(404).json({ message: "Ссылка не найдена" });
+      res.status(404).json({ message: "Ссылка не найдена" });
+      return;
     }
 
     res.redirect(link.originalUrl);
@@ -180,6 +203,7 @@ export async function redirectToOriginal(req: Request, res: Response) {
     }
   } catch (error) {
     console.error("Ошибка в redirectToOriginal:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }

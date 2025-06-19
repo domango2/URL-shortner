@@ -6,22 +6,26 @@ import { User } from "../models/user.model";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "urlshortnersecretkey";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
+const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
-export async function register(req: Request, res: Response) {
+export async function register(req: Request, res: Response): Promise<void> {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email и пароль обязательны" });
+      res.status(400).json({ message: "Email и пароль обязательны" });
+      return;
     }
 
+    // TODO: move to it's own service-function
+    // function ...(email, password) {...}
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res
+      res
         .status(409)
         .json({ message: "Пользователь с таким email уже существует" });
+      return;
     }
 
     const saltRounds = 10;
@@ -31,40 +35,48 @@ export async function register(req: Request, res: Response) {
       email,
       password: hashedPassword,
     });
+    // ends here
 
-    return res
+    res
       .status(201)
       .json({ message: "Пользователь зарегистрирован", userId: newUser.id });
+    return;
   } catch (error) {
     console.error("Ошибка в register:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response): Promise<void> {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email и пароль обязательны" });
+      res.status(400).json({ message: "Email и пароль обязательны" });
+      return;
     }
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(401).json({ message: "Неверные email или пароль" });
+      res.status(401).json({ message: "Неверные email или пароль" });
+      return;
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ message: "Неверные email или пароль" });
+      res.status(401).json({ message: "Неверные email или пароль" });
+      return;
     }
 
     const payload = { id: user.id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    return res.json({ message: "Успешный вход", token });
+    res.json({ message: "Успешный вход", token });
+    return;
   } catch (error) {
     console.error("Ошибка в login", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }

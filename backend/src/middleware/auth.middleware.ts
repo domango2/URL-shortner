@@ -4,17 +4,18 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "urlshortnersecretkey";
+const JWT_SECRET = process.env.JWT_SECRET || "";
 
 export function authenticateJWT(
   req: Request,
   res: Response,
   next: NextFunction
-) {
+): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Токен отсутствует" });
+    res.status(401).json({ message: "Токен отсутствует" });
+    return;
   }
 
   const token = authHeader.split(" ")[1];
@@ -26,6 +27,7 @@ export function authenticateJWT(
     (req as any).userId = payload.id;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Неверный токен" });
+    res.status(401).json({ message: "Неверный токен" });
+    return;
   }
 }

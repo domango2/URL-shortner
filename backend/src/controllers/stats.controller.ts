@@ -3,25 +3,32 @@ import { Link } from "../models/link.model";
 import { ClickStat } from "../models/clickstat.model";
 import { timeStamp } from "console";
 
-export async function getStatsByShortCode(req: Request, res: Response) {
+export async function getStatsByShortCode(
+  req: Request,
+  res: Response
+): Promise<void> {
   try {
     const userId = (req as any).userId as number;
     const { shortCode } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ message: "Неавторизованы" });
+      res.status(401).json({ message: "Неавторизованы" });
+      return;
     }
 
     if (!shortCode) {
-      return res.status(400).json({ message: "Код ссылки не указан" });
+      res.status(400).json({ message: "Код ссылки не указан" });
+      return;
     }
 
     const link = await Link.findOne({ where: { shortCode } });
     if (!link) {
-      return res.status(404).json({ message: "Ссылка не найдена" });
+      res.status(404).json({ message: "Ссылка не найдена" });
+      return;
     }
     if (link.userId !== userId) {
-      return res.status(403).json({ message: "Доступ запрещён" });
+      res.status(403).json({ message: "Доступ запрещён" });
+      return;
     }
 
     const clicks = await ClickStat.findAll({
@@ -38,9 +45,11 @@ export async function getStatsByShortCode(req: Request, res: Response) {
       os: c.os,
     }));
 
-    return res.json({ shortCode, stats });
+    res.json({ shortCode, stats });
+    return;
   } catch (error) {
     console.error("Ошибка в getStatsByShortCode:", error);
-    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    res.status(500).json({ message: "Внутренняя ошибка сервера" });
+    return;
   }
 }
