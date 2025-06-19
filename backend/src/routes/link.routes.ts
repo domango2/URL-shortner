@@ -12,7 +12,6 @@ const router = Router();
 
 router.get("/", authenticateJWT, getUserLinks);
 router.post("/", authenticateJWT, createShortLink);
-router.patch("/:id", authenticateJWT, updateLink);
 router.delete("/:id", authenticateJWT, deleteLink);
 router.get("/:shortCode", redirectToOriginal);
 
