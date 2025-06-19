@@ -3,6 +3,8 @@ import axios from "axios";
 import * as Yup from "yup";
 import AuthForm from "../components/AuthForm";
 
+const URL = import.meta.env.VITE_API_URL;
+
 interface LoginForm {
   email: string;
   password: string;
@@ -25,13 +27,9 @@ const LoginPage: React.FC = () => {
   ) => {
     setStatus(null);
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/auth/login",
-        values,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const { data } = await axios.post(`${URL}/auth/login`, values, {
+        headers: { "Content-Type": "application/json" },
+      });
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
     } catch (err: any) {

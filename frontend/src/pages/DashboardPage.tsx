@@ -4,14 +4,14 @@ import NavBar from "../components/NavBar";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
 
+const URL = import.meta.env.VITE_API_URL;
+
 interface UserLink {
   id: number;
   originalUrl: string;
   shortCode: string;
   createdAt: string;
 }
-
-const URL = import.meta.env.VITE_API_URL;
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();

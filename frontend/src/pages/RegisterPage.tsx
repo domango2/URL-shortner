@@ -3,6 +3,8 @@ import axios from "axios";
 import * as Yup from "yup";
 import AuthForm from "../components/AuthForm";
 
+const URL = import.meta.env.VITE_API_URL;
+
 interface RegisterForm {
   email: string;
   password: string;
@@ -25,7 +27,7 @@ const RegisterPage: React.FC = () => {
   ) => {
     setStatus(null);
     try {
-      await axios.post("http://localhost:5000/auth/register", values, {
+      await axios.post(`${URL}/auth/register`, values, {
         headers: { "Content-Type": "application/json" },
       });
       setStatus({

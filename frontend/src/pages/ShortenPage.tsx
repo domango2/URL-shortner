@@ -3,6 +3,8 @@ import axios from "axios";
 import NavBar from "../components/NavBar";
 import { useAuth } from "../hooks/useAuth";
 
+const URL = import.meta.env.VITE_API_URL;
+
 const ShortenPage: React.FC = () => {
   const { authHeaders, handleAuthError } = useAuth();
   const [form, setForm] = useState({ originalUrl: "" });
@@ -25,7 +27,7 @@ const ShortenPage: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/links",
+        `${URL}/links`,
         { originalUrl: form.originalUrl },
         {
           headers: {
@@ -113,7 +115,7 @@ const ShortenPage: React.FC = () => {
               <p className="text-gray-700">
                 <strong>Short URL:</strong>{" "}
                 <a
-                  href={`http://localhost:5000/links/${result.shortCode}`}
+                  href={`${URL}/links/${result.shortCode}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline break-all"

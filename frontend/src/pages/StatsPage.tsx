@@ -13,6 +13,8 @@ import {
 import NavBar from "../components/NavBar";
 import { useAuth } from "../hooks/useAuth";
 
+const URL = import.meta.env.VITE_API_URL;
+
 interface ClickStat {
   timestamp: string;
   ip: string;
@@ -50,7 +52,7 @@ const StatsPage: React.FC = () => {
 
       try {
         const response = await axios.get<StatsResponse>(
-          `http://localhost:5000/stats/${shortCode}`,
+          `${URL}/stats/${shortCode}`,
           {
             headers: authHeaders(),
           }
