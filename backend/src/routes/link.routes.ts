@@ -4,7 +4,6 @@ import {
   redirectToOriginal,
   getUserLinks,
   deleteLink,
-  updateLink,
 } from "../controllers/link.controller";
 import { authenticateJWT } from "../middleware/auth.middleware";
 
