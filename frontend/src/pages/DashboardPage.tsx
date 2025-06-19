@@ -11,6 +11,8 @@ interface UserLink {
   createdAt: string;
 }
 
+const URL = import.meta.env.VITE_API_URL;
+
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { authHeaders, handleAuthError } = useAuth();
@@ -23,7 +25,7 @@ const DashboardPage: React.FC = () => {
     const fetchLinks = async () => {
       try {
         const response = await axios.get<{ links: UserLink[] }>(
-          "http://localhost:5000/links",
+          `${URL}/links`,
           { headers: authHeaders() }
         );
         setLinks(response.data.links);
@@ -52,7 +54,7 @@ const DashboardPage: React.FC = () => {
     if (!confirm("Удалить эту ссылку?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/links/${id}`, {
+      await axios.delete(`${URL}/links/${id}`, {
         headers: authHeaders(),
       });
       setLinks((prev) => prev.filter((link) => link.id !== id));
@@ -62,11 +64,13 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const filtered = links.filter(
-    (l) =>
-      l.originalUrl.toLowerCase().includes(search.trim().toLowerCase()) ||
-      l.shortCode.toLowerCase().includes(search.trim().toLowerCase())
-  );
+  const filtered = Array.isArray(links)
+    ? links.filter(
+        (l) =>
+          l.originalUrl.toLowerCase().includes(search.trim().toLowerCase()) ||
+          l.shortCode.toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : [];
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
@@ -153,12 +157,12 @@ const DashboardPage: React.FC = () => {
                     </td>
                     <td className="px-3 sm:px-4 py-2 border">
                       <a
-                        href={`http://localhost:5000/links/${link.shortCode}`}
+                        href={`${URL}/links/${link.shortCode}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline break-all"
                       >
-                        {`http://localhost:5000/links/${link.shortCode}`}
+                        {`${URL}/links/${link.shortCode}`}
                       </a>
                     </td>
                     <td className="px-3 sm:px-4 py-2 border text-gray-700">
@@ -171,7 +175,7 @@ const DashboardPage: React.FC = () => {
                       >
                         <button
                           onClick={() => navigate(`/stats/${link.shortCode}`)}
-                          className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs sm:text-sm"
+                          className="w-full sm:w-auto px-2 sm:px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-xs sm:text-sm"
                         >
                           Статистика
                         </button>

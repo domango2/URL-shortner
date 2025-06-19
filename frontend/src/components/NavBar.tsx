@@ -32,7 +32,7 @@ const NavBar: React.FC = () => {
             </NavLink>
             <button
               onClick={handleLogout}
-              className="ml-4 bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-600"
+              className="ml-4 bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-800"
             >
               Выйти
             </button>

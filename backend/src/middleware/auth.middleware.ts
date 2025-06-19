@@ -1,10 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET || "";
+import { verifyToken } from "../utils/jwt";
 
 export function authenticateJWT(
   req: Request,
@@ -20,11 +15,9 @@ export function authenticateJWT(
 
   const token = authHeader.split(" ")[1];
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as {
-      id: number;
-      email: string;
-    };
-    (req as any).userId = payload.id;
+    const payload = verifyToken(token);
+
+    (req as any).userId = payload.userId;
     next();
   } catch (error) {
     res.status(401).json({ message: "Неверный токен" });

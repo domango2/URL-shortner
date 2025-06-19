@@ -1,13 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import { signToken } from "../utils/jwt";
 import { User } from "../models/user.model";
-
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET || "";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
@@ -69,8 +63,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const payload = { id: user.id, email: user.email };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const token = signToken({ userId: user.id, email: user.email });
 
     res.json({ message: "Успешный вход", token });
     return;
