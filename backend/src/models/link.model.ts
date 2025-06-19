@@ -1,73 +1,50 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../config/database";
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  CreatedAt,
+  UpdatedAt,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+} from "sequelize-typescript";
+import { Optional } from "sequelize";
 import { User } from "./user.model";
+import { ClickStat } from "./clickstat.model";
 
 interface LinkAttributes {
   id: number;
   userId: number;
   originalUrl: string;
   shortCode: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
-
-interface LinkCreationAttributes
+interface LinkCreationAttrs
   extends Optional<LinkAttributes, "id" | "createdAt" | "updatedAt"> {}
 
+@Table({ tableName: "Links", timestamps: true })
 export class Link
-  extends Model<LinkAttributes, LinkCreationAttributes>
+  extends Model<LinkAttributes, LinkCreationAttrs>
   implements LinkAttributes
 {
-  public id!: number;
-  public userId!: number;
-  public originalUrl!: string;
-  public shortCode!: string;
-  public readonly createdAt?: Date;
-  public readonly updatedAt?: Date;
+  @Column({ type: DataType.INTEGER, autoIncrement: true, primaryKey: true })
+  id!: number;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.INTEGER, allowNull: false })
+  userId!: number;
+
+  @Column({ type: DataType.TEXT, allowNull: false })
+  originalUrl!: string;
+
+  @Column({ type: DataType.STRING(10), allowNull: false, unique: true })
+  shortCode!: string;
+
+  @CreatedAt @Column({ field: "createdAt" }) createdAt!: Date;
+  @UpdatedAt @Column({ field: "updatedAt" }) updatedAt!: Date;
+
+  @BelongsTo(() => User, "userId") user?: User;
+  @HasMany(() => ClickStat, "linkId") clicks?: ClickStat[];
 }
-
-Link.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: User,
-        key: "id",
-      },
-      onDelete: "CASCADE",
-    },
-    originalUrl: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    shortCode: {
-      type: DataTypes.STRING(10),
-      allowNull: false,
-      unique: true,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    tableName: "Links",
-    timestamps: true,
-  }
-);
-
-User.hasMany(Link, { foreignKey: "userId", as: "links" });
-Link.belongsTo(User, { foreignKey: "userId", as: "user" });

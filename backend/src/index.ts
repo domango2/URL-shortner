@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connectDB, sequelize } from "./config/database";
+import { connectDB } from "./config/database";
 import "./models/user.model";
 import "./models/link.model";
 import "./models/clickstat.model";
@@ -27,7 +27,6 @@ app.get("/", (_req: Request, res: Response) => {
 
 async function startServer() {
   await connectDB();
-  await sequelize.sync({ alter: true });
 
   app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);

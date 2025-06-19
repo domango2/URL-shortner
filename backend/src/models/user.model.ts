@@ -1,61 +1,48 @@
-import { DataType, DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../config/database";
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  CreatedAt,
+  UpdatedAt,
+  HasMany,
+} from "sequelize-typescript";
+import { Optional } from "sequelize";
+import { Link } from "./link.model";
 
 interface UserAttributes {
   id: number;
   email: string;
   password: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-interface UserCreationAttributes
+interface UserCreationAttrs
   extends Optional<UserAttributes, "id" | "createdAt" | "updatedAt"> {}
 
+@Table({ tableName: "Users", timestamps: true })
 export class User
-  extends Model<UserAttributes, UserCreationAttributes>
+  extends Model<UserAttributes, UserCreationAttrs>
   implements UserAttributes
 {
-  public id!: number;
-  public email!: string;
-  public password!: string;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-}
+  @Column({ type: DataType.INTEGER, autoIncrement: true, primaryKey: true })
+  id!: number;
 
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    email: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
-      },
-    },
-    password: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-  },
-  {
-    sequelize,
-    tableName: "Users",
-    timestamps: true,
-  }
-);
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: false,
+    unique: true,
+    validate: { isEmail: true },
+  })
+  email!: string;
+
+  @Column({ type: DataType.STRING(255), allowNull: false })
+  password!: string;
+
+  @CreatedAt @Column({ field: "createdAt" }) createdAt!: Date;
+  @UpdatedAt @Column({ field: "updatedAt" }) updatedAt!: Date;
+
+  @HasMany(() => Link, "userId")
+  links?: Link[];
+}
