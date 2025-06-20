@@ -4,7 +4,7 @@ import * as Yup from "yup";
 
 interface AuthFormProps<T> {
   initialValues: T;
-  validationSchema: Yup.ObjectSchema<any>;
+  validationSchema: Yup.Schema<T>;
   onSubmit: (values: T, formikHelpers: FormikHelpers<T>) => Promise<void>;
   title: string;
   submitText: string;

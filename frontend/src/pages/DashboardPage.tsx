@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
+import type { AxiosError } from "axios";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -29,7 +30,8 @@ const DashboardPage: React.FC = () => {
           { headers: authHeaders() }
         );
         setLinks(response.data.links);
-      } catch (err: any) {
+      } catch (unknownErr) {
+        const err = unknownErr as AxiosError<{ message: string }>;
         console.error(err);
         if (err.response?.status === 401 || err.response?.status === 403) {
           handleAuthError();
@@ -44,7 +46,8 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchLinks();
-  }, [authHeaders, handleAuthError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

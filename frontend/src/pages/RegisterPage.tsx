@@ -2,6 +2,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import * as Yup from "yup";
 import AuthForm from "../components/AuthForm";
+import type { AxiosError } from "axios";
+import type { FormikHelpers } from "formik";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -23,7 +25,7 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (
     values: RegisterForm,
-    { setStatus, setSubmitting }: any
+    { setStatus, setSubmitting }: FormikHelpers<RegisterForm>
   ) => {
     setStatus(null);
     try {
@@ -35,7 +37,8 @@ const RegisterPage: React.FC = () => {
         message: "Учётная запись создана! Перенаправляем...",
       });
       setTimeout(() => navigate("/login"), 1500);
-    } catch (err: any) {
+    } catch (unknownErr) {
+      const err = unknownErr as AxiosError<{ message: string }>;
       setStatus({
         success: false,
         message: err.response?.data?.message || "Ошибка при регистрации",

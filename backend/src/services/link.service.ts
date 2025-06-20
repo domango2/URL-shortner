@@ -1,5 +1,5 @@
 import axios from "axios";
-import UAParser from "ua-parser-js";
+import * as UAParser from "ua-parser-js";
 import { Link } from "../models/link.model";
 import { ClickStat } from "../models/clickstat.model";
 import { generateUniqueShortCode } from "../utils/generateShortCode";

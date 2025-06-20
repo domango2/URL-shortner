@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import NavBar from "../components/NavBar";
 import { useAuth } from "../hooks/useAuth";
+import type { AxiosError } from "axios";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -43,7 +44,8 @@ const ShortenPage: React.FC = () => {
         shortCode: data.data.shortCode,
       });
       setForm({ originalUrl: "" });
-    } catch (err: any) {
+    } catch (unknownErr) {
+      const err = unknownErr as AxiosError<{ message: string }>;
       if (err.response?.status === 401 || err.response?.status === 403) {
         handleAuthError();
         return;

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import NavBar from "../components/NavBar";
 import { useAuth } from "../hooks/useAuth";
+import type { AxiosError } from "axios";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -69,7 +70,8 @@ const StatsPage: React.FC = () => {
           .map(([date, count]) => ({ date, count }))
           .sort((a, b) => (a.date < b.date ? -1 : 1));
         setChartData(chartArr);
-      } catch (err: any) {
+      } catch (unknownErr) {
+        const err = unknownErr as AxiosError<{ message: string }>;
         console.error(err);
         if (err.response?.status === 401 || err.response?.status === 403) {
           handleAuthError();
@@ -84,7 +86,8 @@ const StatsPage: React.FC = () => {
     };
 
     fetchStats();
-  }, [shortCode, authHeaders, handleAuthError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shortCode]);
 
   if (loading) {
     return (

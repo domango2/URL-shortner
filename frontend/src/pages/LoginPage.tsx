@@ -2,6 +2,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import * as Yup from "yup";
 import AuthForm from "../components/AuthForm";
+import type { AxiosError } from "axios";
+import type { FormikHelpers } from "formik";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -23,7 +25,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (
     values: LoginForm,
-    { setStatus, setSubmitting }: any
+    { setStatus, setSubmitting }: FormikHelpers<LoginForm>
   ) => {
     setStatus(null);
     try {
@@ -32,7 +34,8 @@ const LoginPage: React.FC = () => {
       });
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
-    } catch (err: any) {
+    } catch (unknownErr) {
+      const err = unknownErr as AxiosError<{ message: string }>;
       setStatus({
         success: false,
         message: err.response?.data?.message || "Ошибка при входе",
